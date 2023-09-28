@@ -2,6 +2,7 @@
 from flask import Flask, jsonify,render_template
 from flask_pymongo import PyMongo
 from bson import json_util
+import json
 # Create an app, being sure to pass __name__
 app = Flask(__name__)
 app.config["MONGO_URI"]="mongodb://localhost:27017/PROJECT4"
@@ -14,7 +15,7 @@ hello_dict = {"/normal": "ROBO A NEGOCIO SIN VIOLENCIA"}
 @app.route("/")
 def home():
     mongo.db.PGJcarpetas
-    text=["DELITOS-POR-ALCALDIA","/alcaldia","Meses con mas delito por tipo de delito<br/>","/delito/GROUPBYMONTH","/alcaldiascount","/DELITOS_COUNT(CATALOGO DELITOS)","/ROBO A NEGOCIO SIN VIOLENCIA","/PERDIDA DE LA VIDA POR SUICIDIO","/delito/alcaldia","/delito/alcaldia/año"]
+    text=['HOLA']
     data={
         'titulo':'Project3',
         'bienvenida':'Saludos',
@@ -76,7 +77,7 @@ def anocount():
     results = list(mongo.db.PGJcarpetas.aggregate(pipeline))
     return results
 
-@app.route("/LPERDIDA DE LA VIDA POR SUICIDIO/<ano>/")
+@app.route("/COUNT/suicidio/<ano>/")
 def delitomasalcaldia(ano):
     ano_clean=int(ano)
     # Build the aggregation pipeline
@@ -88,24 +89,38 @@ def delitomasalcaldia(ano):
     # Put the pipeline together
     pipeline = [match_query, group_query, sort_values]
     results = list(mongo.db.PGJcarpetas.aggregate(pipeline))
-    return results
+    return (results)
 
 @app.route("/<delito>/<ano>")
 def delitomasano(delito,ano):
     delito_clean=delito.upper()
     ano_clean=int(ano)
     # Build the aggregation pipeline
-    match_query = {'$match': {'delito': delito_clean,'anio_hecho': ano_clean}}
-    query = {'delito': delito_clean,'anio_hecho': ano_clean}
-    fields = {'longitud': 1, 'latitud': 1}
+    match_query = {'$match': {'delito': 'ROBO A TRANSEUNTE EN VIA PUBLICA CON VIOLENCIA','anio_hecho': 2018}}
+    query = {'delito': 'ROBO A TRANSEUNTE EN VIA PUBLICA CON VIOLENCIA','anio_hecho': 2018}
+    fields = {'longitud': 1, 'latitud': 1,'alcaldia_hecho':1}
     # Capture the results to a variable
     results = list(mongo.db.PGJcarpetas.find(query, fields))
-    location=[]
-    for result in results:
-        result2=str(result)
-        location.append(result2)
+    
+    list_of_dict=[]
+    for i in range(len(results)):
+        #initializate variables
+        location={}
+        location["longitud"]=0
+        location["latitud"]=0
+        location["alcaldia"]=0
+        location["alcaldia_hecho"]=0
+        ##########################
+        longitud=results[i]['longitud']
+        latitud=results[i]['latitud']
+        alcaldia=results[i]['alcaldia_hecho']
+        ######creating dictionary
+        location["longitud"]=longitud
+        location["latitud"]=latitud
+        location["alcaldia"]=alcaldia
+        list_of_dict.append(location)
 
-    return location
+    return list_of_dict
 if __name__ == "__main__":
     app.run(debug=True,port=5001)
 

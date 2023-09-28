@@ -1,37 +1,4 @@
-function optionChanged_map(value){
-    //gettting selected_options
-    let dropdownMenu_delitos = d3.select("#selDataset2");
-    let dropdownMenu_anos = d3.select("#selDataset3");
-    let delito_option=dropdownMenu_delitos.property("value");
-    let ano_option=dropdownMenu_anos.property("value");
-    //Setting botton value
-    map_url="http://127.0.0.1:5001/"
-    map_url+=delito_option
-    map_url+="/"
-    map_url+=ano_option
-    console.log(map_url)
-    d3.json(map_url).then(function(location)
-    {
-       console.log(location[0])
-       location={}
-       _id=[]
-       latitud=[]
-        longitud=[]
-        for (let i=0;i<location.length;i++){
-            latitud[i]=JSON.stringify(location[i])
-
-    }
-    console.log(typeof(location))
-
-    })
-
-    
-    
-    
-
-    }
-
-
+let counter=1;
 function optionChanged(value){
     let dropdownMenu = d3.select("#selDataset1");
     let seleted_option=dropdownMenu.property("value");
@@ -41,7 +8,7 @@ function optionChanged(value){
         console.log("EN ESPERA");
       }
        else {
-        url_data="http://127.0.0.1:5001/LPERDIDA%20DE%20LA%20VIDA%20POR%20SUICIDIO/"
+        url_data="http://127.0.0.1:5001/COUNT/suicidio/"
         year=value
         url_data+=year
 
@@ -118,9 +85,9 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
     }
 
 
-    //starts bar chart in 2017
-    d3.json("http://127.0.0.1:5001/LPERDIDA%20DE%20LA%20VIDA%20POR%20SUICIDIO/2017").then(function(suicidios){
-    year=2017
+    //starts bar chart in 2016
+    d3.json("http://127.0.0.1:5001/COUNT/suicidio/2016").then(function(suicidios){
+    year=2016
     _idlist=[]
     count_s=[]
     for (let i=0;i<suicidios.length;i++){
@@ -129,7 +96,7 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
         //getting de metadata
         count_s.push(suicidios[i].count);
     }
-    console.log(_idlist)
+
     barchart(_idlist,count_s,year);
     d3.selectAll("#selDataset").on("change", a=optionChanged());
     return suicidios
@@ -146,28 +113,165 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
      map_url+='ABANDONO DE PERSONA'
      map_url+="/"
      map_url+=2016
-     console.log(map_url)
     //starts bar chart in 2017
     d3.json(map_url).then(function(location){
-    var coordinates=location
         _idlist=[]
-    count_s=[]
-    for (let i=0;i<location.length;i++){
-        //getting the samples
-        location[i]=location[i].tostr
-    }
-    A=d3.keys(coordinates)
-    console.log(A)
-    //createFeatures(location);
-    //On change for map
-    //d3.selectAll("#selDataset3").on("change", a=optionChanged_map());
-
+        count_s=[]
+        createFeatures(location);
+        
     })
+    
     //Setting info for map
-
+    
 })
 
+function createFeatures(location) {
+    console.log("creating features")
+    //Setting up list for easier acces to the info
+    delitos_markers=[]
+    for (let i = 0; i < location.length; i++) {
+      // Setting the circle marker
+      delitos_markers.push(L.circle([location[i].latitud,location[i].longitud],{
+        stroke: false,
+        fillOpacity: 10,
+        color: 'red',
+        fillColor: 'red',
+        fillOpacity:"0.5",
+        radius: 50
+        
+      }).bindPopup(`<h3>${"Alcaldia: "+location[i].alcaldia}</h3><hr>`));
+
+        };
+    // Send our earthquakes layer to the createMap function/
+
+    let circle_layer = L.layerGroup(delitos_markers);
+    createMap(circle_layer);
+    //console.log(earthquakeData)
+  }
+  
+function createMap(circle_layer) {
+    console.log("Creating maps")
+// Define variables for our tile layers.
+let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+})
+
+let topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
+
+// Only one base layer can be shown at a time.
+let baseMaps = {
+  Street: street,
+  Topography: topo
+};
+
+// Overlays that can be toggled on or off
+let overlayMaps = {
+  Cities: circle_layer
+};
+
+// Create a map object, and set the default layers.
+let myMap = L.map("map", {
+  center: [19.4326018,  -99.1332049],
+  zoom: 10,
+  layers: [street, circle_layer]
+});
+
+// Pass our map layers into our layer control.
+// Add the layer control to the map.
+L.control.layers(baseMaps, overlayMaps).addTo(myMap);
+d3.selectAll("#selDataset3").on("change", a=optionChanged_map);
+
+  }
 
 
+  
+function optionChanged_map(value){
+    
+    //gettting selected_options values
+    let dropdownMenu_delitos = d3.select("#selDataset2");
+    let dropdownMenu_anos = d3.select("#selDataset3");
+    let delito_option=dropdownMenu_delitos.property("value");
+    let ano_option=dropdownMenu_anos.property("value");
+    //Setting botton value
+    //Setting botton value
+    map_url="http://127.0.0.1:5001/"
+    map_url+=delito_option
+    map_url+="/"
+    map_url+=ano_option
+    console.log(map_url)
+
+    if (value == undefined) {
+        console.log("map changin esperando");
+      }  else {
+        d3.json(map_url).then(function(location){
+            change_Features(location);
+    })
+      }
+    
+    }
+
+    function change_Features(location) {
+        console.log("changing features")
+        d3.selectAll("map").on()
+        //Setting up list for easier acces to the info
+        delitos_markers=[]
+        for (let i = 0; i < location.length; i++) {
+          // Setting the circle marker
+          delitos_markers.push(L.circle([location[i].latitud,location[i].longitud],{
+            stroke: false,
+            fillOpacity: 10,
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity:"0.5",
+            radius: 50
+            
+          }).bindPopup(`<h3>${"Alcaldia: "+location[i].alcaldia}</h3><hr>`));
+    
+            };
+        // Send our earthquakes layer to the createMap function/
+    
+        let circle_layer = L.layerGroup(delitos_markers);
+        changeMap(circle_layer);
+        //console.log(earthquakeData)
+      }
+      
+    function changeMap(circle_layer) {
+        console.log("Changing maps")
+
+        // Define variables for our tile layers.
+    let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    })
+    
+    let topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+    });
+    
+    // Only one base layer can be shown at a time.
+    let baseMaps = {
+      Street: street,
+      Topography: topo
+    };
+    
+    // Overlays that can be toggled on or off
+    let overlayMaps = {
+      Cities: circle_layer
+    };
+    
+    // Create a map object, and set the default layers.
+    let myMap2 = L.map("map", {
+      center: [19.4326018,  -99.1332049],
+      zoom: 10,
+      layers: [street, circle_layer]
+    });
+    
+    // Pass our map layers into our layer control.
+    // Add the layer control to the map.
+    L.control.layers(baseMaps, overlayMaps).addTo(myMap2);
+    counter=counter+1;
+      }
 
 
+  
