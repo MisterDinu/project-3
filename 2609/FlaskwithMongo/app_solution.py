@@ -121,6 +121,49 @@ def delitomasano(delito,ano):
         list_of_dict.append(location)
 
     return list_of_dict
+
+@app.route("/MAPAS/INFO")
+def mapasinfo():
+    # Build the aggregation pipeline
+    # Build the aggregation pipeline
+    match_query = {'$match': {'anio_hecho': 2023}}
+    query = {'anio_hecho': 2023}
+    fields = {'longitud': 1, 'latitud': 1,'alcaldia_hecho':1,'delito':1,'categoria':1}
+    limit=10000
+    # Capture the results to a variable
+    results = list(mongo.db.PGJcarpetas.find(query, fields).limit(limit))
+    list_of_dict=[]
+
+    for i in range(len(results)):
+        location={}
+        longitud=results[i]['longitud']
+        latitud=results[i]['latitud']
+        alcaldia=results[i]['alcaldia_hecho']
+        delito=results[i]['delito']
+        categoria=results[i]['categoria']
+        ###################3
+        location["longitud"]=longitud
+        location["latitud"]=latitud
+        location["Alcaldia"]=alcaldia
+        location["Delito"]=delito
+        location["Categoria"]=categoria
+        list_of_dict.append(location)
+    return list_of_dict
+
+@app.route("/COUNT/alcaldia/<ano>/")
+def countalcaldiaano(ano):
+    ano_clean=int(ano)
+    # Build the aggregation pipeline
+    match_query = {'$match': {'anio_hecho': ano_clean}}
+    # Write an aggregation query that counts the number of documents, grouped by "MES"
+    group_query = {'$group': {'_id': "$alcaldia", 'count': { '$sum': 1 }}}
+    # Create a dictionary that will allow the pipeline to sort by count in descending order
+    sort_values = {'$sort': { 'count': +1 }}
+    # Put the pipeline together
+    pipeline = [match_query, group_query, sort_values]
+    results = list(mongo.db.PGJcarpetas.aggregate(pipeline))
+    return (results)
+
 if __name__ == "__main__":
     app.run(debug=True,port=5001)
 

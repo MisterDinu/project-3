@@ -73,20 +73,7 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
     for (let i=0;i<years_to_show.length;i++){
         d3.selectAll("#selDataset1").append("option").text(years_to_show[i])
     }
-    //show delitos
-    d3.json("http://127.0.0.1:5001/delitos_keys").then(function(delitos)
-    {
-        for (let i=0;i<delitos.length;i++){
-            d3.selectAll("#selDataset2").append("option").text(delitos[i])
-        }
-
-    })
-    //show year
-    for (let i=0;i<years_to_show.length;i++){
-        d3.selectAll("#selDataset3").append("option").text(years_to_show[i])
-    }
-
-
+    
     //starts bar chart in 2018
     d3.json("http://127.0.0.1:5001/COUNT/suicidio/2018").then(function(suicidios){
     year=2016
@@ -110,10 +97,8 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
 
 d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
      //Setting start map on suicidues 2017
-     map_url="http://127.0.0.1:5001/"
-     map_url+='ABANDONO DE PERSONA'
-     map_url+="/"
-     map_url+=2018
+     map_url="http://127.0.0.1:5001/MAPAS/INFO"
+
     d3.json(map_url).then(function(location){
         _idlist=[]
         count_s=[]
@@ -139,7 +124,7 @@ function createFeatures(location) {
         fillOpacity:"0.5",
         radius: 50
         
-      }).bindPopup(`<h3>${"Alcaldia: "+location[i].alcaldia}</h3><hr>`));
+      }).bindPopup(`<h3>${"Delito: "+location[i].Delito}</h3><hr><h5>${"Categoria: "+location[i].Categoria }</h5><hr><h5>${"Alcaldia: "+location[i].Alcaldia}</h5>`));
 
 
 
