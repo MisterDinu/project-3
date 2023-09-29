@@ -10,7 +10,7 @@ function optionChanged(value){
         console.log("EN ESPERA");
       }
        else {
-        url_data="http://127.0.0.1:5001/COUNT/suicidio/"
+        url_data="http://127.0.0.1:5001//COUNT/alcaldia/"
         year=value
         url_data+=year
 
@@ -32,6 +32,34 @@ function optionChanged(value){
     
 
     }
+  
+function scatter_chart(anio_hecho_,ano_inicio_,delta){
+  var trace_bubble = {
+    x: anio_inicio_,
+    y: delta,
+    mode: 'markers',
+    marker: {
+      color: 'rgb(76, 192, 201)',
+      opacity: delta,
+      size: delta*100
+    }
+  };
+ 
+  var data_bubble = [trace_bubble];
+  
+  var layout_bubble = {
+    title: 'OTU ID',
+    showlegend: false,
+    height: 500,
+    width: 1000,
+    title: `Año inicio de carpeta vs Delta`
+  };
+  
+  Plotly.newPlot('gauge', data_bubble, layout_bubble);
+}
+
+
+
 
 function barchart(id,count,year){
     //settin the data to plot
@@ -48,7 +76,8 @@ function barchart(id,count,year){
     // Apply a title to the layout
     let layout = {
       height: 500,
-      width: 800
+      width: 800,
+      title: `Conteo de delitos en ${year}`
     };
     Plotly.newPlot("bar", traceData, layout);
   
@@ -74,9 +103,10 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
         d3.selectAll("#selDataset1").append("option").text(years_to_show[i])
     }
     
+
     //starts bar chart in 2018
-    d3.json("http://127.0.0.1:5001/COUNT/suicidio/2018").then(function(suicidios){
-    year=2016
+    d3.json("http://127.0.0.1:5001/COUNT/alcaldia/2018/").then(function(suicidios){
+    year=2018
     _idlist=[]
     count_s=[]
     for (let i=0;i<suicidios.length;i++){
@@ -90,6 +120,31 @@ d3.json("http://127.0.0.1:5001/anos_keys").then(function(anos){
     d3.selectAll("#selDataset").on("change", a=optionChanged());
 
     })
+    d3.json("http://127.0.0.1:5001/violacion/").then(function(datos)
+    {
+      anio_hecho_=[]
+      anio_inicio_=[]
+      delta=[]
+      for (let i=0;i<datos.length;i++){
+        //getting the samples
+        hecho=0
+        inicio=0  
+        hecho=Number(datos[i].anio_hecho);
+          inicio=Number(datos[i].anio_inicio)
+          delta_for=hecho-inicio
+          if (delta_for < 0) {
+            delta_for=delta_for*-1;
+          }  else {
+            delta_for=delta_for
+          }
+          anio_hecho_.push(hecho)
+          anio_inicio_.push(inicio)
+          delta.push(delta_for)
+    }
+    scatter_chart(anio_hecho_,anio_inicio_,delta);
+    
+    })
+
 })
 
 
@@ -175,6 +230,26 @@ L.control.layers(baseMaps, overlayMaps).addTo(myMap);
 
 
   
+  const selectedAlcaldia = d3.select("#selAlcaldia").property("value");
+  const selectedAno = d3.select("#selAno").property("value");
 
+  function cambioAno(selectedYear) {
+    console.log("Año seleccionado: " + selectedYear);
+  }
+
+  function cambioAlcaldia(selectedAlcaldia) {
+    console.log("Alcaldía seleccionada: " + selectedAlcaldia);
+  }
+
+  function selectChart() {
+    const url_data = "http://127.0.0.1:5001/TOP5/" + selectedAlcaldia + "/" + selectedAno;
+
+    d3.json(url_data).then(function(data) {
+      const labels = data._id;
+      const values = data.count; 
+
+      updateChart(labels, values);
+    });
+  }
 
   
